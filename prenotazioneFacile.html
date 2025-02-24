@@ -1,139 +1,353 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prenotazione Facile</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        h2, h3 {
-            text-align: center;
-        }
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .person {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-            transition: background 0.3s ease-in-out;
-        }
-        .remove-btn {
-            background-color: red;
-            color: white;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-        }
-        .remove-btn:hover {
-            background-color: darkred;
-        }
-        #total-price, #total-invitati {
-            font-weight: bold;
-            text-align: center;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prenotazione Facile</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 15px;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    h2, h3 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    input[type="text"], input[type="date"], input[type="number"], select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      padding: 0;
+      margin: 5px;
+      cursor: pointer;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .person {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 5px;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+      transition: background 0.3s ease;
+      cursor: grab;
+    }
+    .person.dragging {
+      opacity: 0.5;
+    }
+    .remove-btn {
+      background-color: #e74c3c;
+      color: #fff;
+      border: none;
+      padding: 5px 8px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .remove-btn:hover {
+      background-color: #c0392b;
+    }
+    #total-price, #total-invitati {
+      font-weight: bold;
+      text-align: center;
+    }
+    #anteprima {
+      background: #fff;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+      box-shadow: 0px 2px 4px rgba(0,0,0,0.1);
+    }
+    #anteprima h3 {
+      margin-top: 0;
+      text-align: center;
+    }
+    .invitato-item {
+      border-bottom: 1px solid #ccc;
+      padding: 5px 0;
+    }
+    /* Stili per rendere l'interfaccia mobile-friendly */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      input[type="color"] {
+        width: 35px;
+        height: 35px;
+      }
+      button {
+        font-size: 18px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h2>Prenotazione Facile</h2>
-    <label>Nome Locale: <input type="text" id="locale"></label>
-    <label>Tipo di Festività: <input type="text" id="festivita"></label>
-    <label>Data: <input type="date" id="data"></label>
+  <h2>Prenotazione Facile</h2>
+  <label>
+    Nome Locale:
+    <input type="text" id="locale" placeholder="Inserisci il nome del locale">
+  </label>
+  <label>
+    Tipo di Festività:
+    <input type="text" id="festivita" placeholder="Inserisci la festività">
+  </label>
+  <label>
+    Data:
+    <input type="date" id="data">
+  </label>
+  
+  <h3>Invitati</h3>
+  <button onclick="aggiungiPersona()">Aggiungi Persona</button>
+  <div id="invitati"></div>
+  <p id="total-invitati">Totale invitati: 0</p>
+  
+  <h3>Prezzo</h3>
+  <label>
+    Prezzo a persona:
+    <input type="number" id="prezzo" value="0" min="0" onchange="calcolaTotale()">
+  </label>
+  <p id="total-price">Totale: 0€ | Esclusi "forse": 0€</p>
+  
+  <button onclick="mostraAnteprima()">Mostra Anteprima</button>
+  <button onclick="esportaDati()">Esporta Dati</button>
+  
+  <div id="anteprima" style="display:none;">
+    <h3>Anteprima Prenotazione</h3>
+    <div id="anteprima-contenuto"></div>
+  </div>
+  
+  <script>
+    let draggedElement = null;
     
-    <h3>Invitati</h3>
-    <button onclick="aggiungiPersona()">Aggiungi Persona</button>
-    <div id="invitati"></div>
-    <p id="total-invitati">Totale invitati: 0</p>
-    
-    <h3>Prezzo</h3>
-    <label>Prezzo a persona: <input type="number" id="prezzo" value="0" min="0" onchange="calcolaTotale()"></label>
-    <p id="total-price">Totale: 0€</p>
-    <button onclick="esportaDati()">Esporta Dati</button>
-    
-    <script>
-        function aggiungiPersona() {
-            let div = document.createElement('div');
-            div.className = 'person';
-            
-            let input = document.createElement('input');
-            input.type = 'text';
-            input.placeholder = 'Nome';
-            
-            let select = document.createElement('select');
-            select.innerHTML = "<option value='forse' selected>Forse Viene</option><option value='viene'>Viene</option><option value='non_viene'>Non Viene</option>";
-            select.onchange = function() {
-                div.setAttribute("data-status", select.value);
-                calcolaTotale();
-            };
-            
-            let colorPicker = document.createElement('input');
-            colorPicker.type = 'color';
-            colorPicker.value = '#ffffff';
-            colorPicker.oninput = function() {
-                div.style.backgroundColor = colorPicker.value;
-            };
-            
-            let removeBtn = document.createElement('button');
-            removeBtn.textContent = 'X';
-            removeBtn.className = 'remove-btn';
-            removeBtn.onclick = function() {
-                div.remove();
-                calcolaTotale();
-            };
-            
-            div.appendChild(input);
-            div.appendChild(select);
-            div.appendChild(colorPicker);
-            div.appendChild(removeBtn);
-            document.getElementById('invitati').appendChild(div);
-            calcolaTotale();
+    // Funzione per aggiungere una nuova persona
+    function aggiungiPersona() {
+      let div = document.createElement('div');
+      div.className = 'person';
+      div.setAttribute("draggable", "true");
+      
+      // Eventi drag and drop
+      div.addEventListener("dragstart", (e) => {
+        draggedElement = div;
+        div.classList.add("dragging");
+      });
+      div.addEventListener("dragend", (e) => {
+        draggedElement = null;
+        div.classList.remove("dragging");
+      });
+      div.addEventListener("dragover", (e) => {
+        e.preventDefault();
+      });
+      div.addEventListener("drop", (e) => {
+        e.preventDefault();
+        if (draggedElement && draggedElement !== div) {
+          // Inserisce l'elemento trascinato prima di quello su cui si effettua il drop
+          let container = document.getElementById('invitati');
+          let children = Array.from(container.children);
+          let draggedIndex = children.indexOf(draggedElement);
+          let dropIndex = children.indexOf(div);
+          if (draggedIndex < dropIndex) {
+            container.insertBefore(draggedElement, div.nextSibling);
+          } else {
+            container.insertBefore(draggedElement, div);
+          }
         }
-
-        function calcolaTotale() {
-            let prezzo = parseFloat(document.getElementById('prezzo').value) || 0;
-            let persone = document.querySelectorAll('.person');
-            let totale = 0, totaleSicuro = 0, totalInvitati = 0;
-            persone.forEach(div => {
-                let nome = div.querySelector('input').value.trim();
-                let stato = div.querySelector('select').value;
-                if (nome === "") return;
-                totalInvitati++;
-                if (stato === "viene") {
-                    totale += prezzo;
-                    totaleSicuro += prezzo;
-                }
-                if (stato === "forse") {
-                    totale += prezzo;
-                }
-            });
-            document.getElementById('total-price').textContent = `Totale: ${totale}€ | Esclusi "forse": ${totaleSicuro}€`;
-            document.getElementById('total-invitati').textContent = `Totale invitati: ${totalInvitati}`;
+      });
+      
+      let input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Nome';
+      
+      let select = document.createElement('select');
+      select.innerHTML = "<option value='forse' selected>Forse Viene</option><option value='viene'>Viene</option><option value='non_viene'>Non Viene</option>";
+      select.onchange = function() {
+        div.setAttribute("data-status", select.value);
+        calcolaTotale();
+      };
+      
+      let colorPicker = document.createElement('input');
+      colorPicker.type = 'color';
+      colorPicker.value = '#ffffff';
+      // Rende il color picker più visibile e intuitivo
+      colorPicker.style.border = "2px solid #ccc";
+      colorPicker.style.borderRadius = "5px";
+      colorPicker.oninput = function() {
+        // Applica un leggero background all'intera card per evidenziare la scelta (non verrà esportato nel report)
+        div.style.backgroundColor = colorPicker.value + "20"; // aggiunge trasparenza
+      };
+      
+      let removeBtn = document.createElement('button');
+      removeBtn.textContent = 'X';
+      removeBtn.className = 'remove-btn';
+      removeBtn.onclick = function() {
+        div.remove();
+        calcolaTotale();
+      };
+      
+      div.appendChild(input);
+      div.appendChild(select);
+      div.appendChild(colorPicker);
+      div.appendChild(removeBtn);
+      document.getElementById('invitati').appendChild(div);
+      calcolaTotale();
+    }
+    
+    // Funzione per calcolare il totale
+    function calcolaTotale() {
+      let prezzo = parseFloat(document.getElementById('prezzo').value) || 0;
+      let persone = document.querySelectorAll('.person');
+      let totale = 0, totaleSicuro = 0, totalInvitati = 0;
+      persone.forEach(div => {
+        let nome = div.querySelector('input').value.trim();
+        let stato = div.querySelector('select').value;
+        if (nome === "") return;
+        totalInvitati++;
+        if (stato === "viene") {
+          totale += prezzo;
+          totaleSicuro += prezzo;
         }
-    </script>
+        if (stato === "forse") {
+          totale += prezzo;
+        }
+      });
+      document.getElementById('total-price').textContent = `Totale: ${totale}€ | Esclusi "forse": ${totaleSicuro}€`;
+      document.getElementById('total-invitati').textContent = `Totale invitati: ${totalInvitati}`;
+    }
+    
+    // Mappa ogni colore unico in un gruppo numerico (es. 1, 2, 3, …)
+    function mappaColori(invitati) {
+      const mappa = {};
+      let gruppoContatore = 1;
+      invitati.forEach(inv => {
+        const colore = inv.colore;
+        if (!mappa[colore]) {
+          mappa[colore] = gruppoContatore;
+          gruppoContatore++;
+        }
+      });
+      return mappa;
+    }
+    
+    // Raccoglie i dati degli invitati
+    function raccogliDati() {
+      const invitatiDiv = document.getElementById('invitati');
+      const persone = invitatiDiv.querySelectorAll('.person');
+      let dati = [];
+      persone.forEach(div => {
+        const nome = div.querySelector('input').value.trim();
+        if (!nome) return;
+        const stato = div.querySelector('select').value;
+        // Leggiamo il colore selezionato (solo per il mapping, non verrà riportato nel report)
+        const colore = div.querySelector('input[type="color"]').value;
+        dati.push({ nome, stato, colore });
+      });
+      return dati;
+    }
+    
+    // Mostra l'anteprima del report
+    function mostraAnteprima() {
+      const dati = raccogliDati();
+      const mappa = mappaColori(dati);
+      const anteprimaContenuto = document.getElementById('anteprima-contenuto');
+      anteprimaContenuto.innerHTML = "";
+      
+      // Dati dell'evento
+      const locale = document.getElementById('locale').value;
+      const festivita = document.getElementById('festivita').value;
+      const dataEvento = document.getElementById('data').value;
+      const prezzo = document.getElementById('prezzo').value;
+      
+      let html = `<p><strong>Locale:</strong> ${locale}</p>
+                  <p><strong>Festività:</strong> ${festivita}</p>
+                  <p><strong>Data:</strong> ${dataEvento}</p>
+                  <p><strong>Prezzo a persona:</strong> ${prezzo}€</p>
+                  <hr>
+                  <h4>Lista Invitati:</h4>`;
+      
+      dati.forEach(inv => {
+        const gruppo = mappa[inv.colore];
+        html += `<div class="invitato-item">
+                    <p><strong>Nome:</strong> ${inv.nome}</p>
+                    <p><strong>Stato:</strong> ${inv.stato}</p>
+                    <p><strong>Gruppo:</strong> ${gruppo}</p>
+                 </div>`;
+      });
+      
+      anteprimaContenuto.innerHTML = html;
+      document.getElementById('anteprima').style.display = "block";
+    }
+    
+    // Esporta i dati in un file TXT con nome generato in base ai parametri
+    function esportaDati() {
+      const datiEvento = {
+        locale: document.getElementById('locale').value,
+        festivita: document.getElementById('festivita').value,
+        data: document.getElementById('data').value,
+        prezzo: document.getElementById('prezzo').value,
+        invitati: raccogliDati()
+      };
+      
+      // Mappatura dei colori in gruppi numerici
+      const mappa = mappaColori(datiEvento.invitati);
+      datiEvento.invitati = datiEvento.invitati.map(inv => ({ 
+        nome: inv.nome, 
+        stato: inv.stato, 
+        gruppo: mappa[inv.colore] 
+      }));
+      
+      // Costruzione del contenuto del file TXT
+      let contenuto = `Evento: ${datiEvento.festivita}\nLocale: ${datiEvento.locale}\nData: ${datiEvento.data}\nPrezzo a persona: ${datiEvento.prezzo}€\n\nLista Invitati:\n`;
+      datiEvento.invitati.forEach((inv, index) => {
+        contenuto += `${index+1}. Nome: ${inv.nome} | Stato: ${inv.stato} | Gruppo: ${inv.gruppo}\n`;
+      });
+      
+      // Generazione del nome file: festività_locale_data.txt (se compilati, altrimenti file generico)
+      let nomeFile = "prenotazione";
+      if(datiEvento.festivita || datiEvento.locale || datiEvento.data) {
+        nomeFile = `${datiEvento.festivita || "festivita"}_${datiEvento.locale || "locale"}_${datiEvento.data || "data"}`;
+      }
+      nomeFile += ".txt";
+      
+      const blob = new Blob([contenuto], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = nomeFile;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  </script>
 </body>
 </html>
